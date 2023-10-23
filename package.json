@@ -1,0 +1,44 @@
+{
+  "name": "aws-iot-assettracker-demo",
+  "version": "3.0.0",
+  "description": "The **AssetTracker Demo** is a cloud native application built using an serverless architecture based on AWS services to show case [AWS IoT](https://aws.amazon.com/iot/) integrations for geospatial use cases in conjuction with the [Amazon Location Services](https://aws.amazon.com/location/) to help Solution Architects around the world to make use of it in their demos and workshops.",
+  "main": "index.js",
+  "workspaces": [
+    "infra",
+    "frontend",
+    "assettracker_simulator",
+    "scripts"
+  ],
+  "scripts": {
+    "utils:createConfig": "npm run createConfig -w scripts",
+    "utils:resizeC9EBS": "sh scripts/resize.sh",
+    "utils:convertCDKtoCfn": "npm run convertCDKtoCfn -w scripts",
+    "frontend:start": "npm start -w frontend",
+    "frontend:build": "npm run build -w frontend",
+    "infra:synth": "npm run cdk:synth -w infra",
+    "infra:bootstrap": "npm run cdk:bootstrap -w infra",
+    "infra:deploy": "npm run cdk:deploy -w infra",
+    "infra:deploy:hot": "npm run cdk:deploy:hot -w infra",
+    "infra:destroy": "npm run cdk:destroy -w infra",
+    "sim:start": "npm run simulate -w assettracker_simulator"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aws-samples/aws-iot-assettracker-demo.git"
+  },
+  "keywords": [
+    "location",
+    "aws",
+    "amazon",
+    "iot"
+  ],
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com"
+  },
+  "license": "MIT-0",
+  "bugs": {
+    "url": "https://github.com/aws-samples/aws-iot-assettracker-demo/issues"
+  },
+  "homepage": "https://github.com/aws-samples/aws-iot-assettracker-demo#readme"
+}
