@@ -1,6 +1,6 @@
-# AWS IoT AssetTracker Demo
+# AWS IoT Asset Tracker Demo
 
-The **AssetTracker Demo** is a cloud native application built using an serverless architecture based on AWS services to show case [AWS IoT](https://aws.amazon.com/iot/) integrations for geospatial use cases in conjuction with the [Amazon Sidewalk](https://www.amazon.com/Amazon-Sidewalk/), [AWS IoT Core](https://aws.amazon.com/iot-core/), and [Amazon Location Services](https://aws.amazon.com/location/) to help Solution Architects around the world to make use of it in their demos and workshops.
+The **Asset Tracker Demo** is a cloud native application built using an serverless architecture based on AWS services to show case [AWS IoT](https://aws.amazon.com/iot/) integrations for geospatial use cases in conjuction with the [Amazon Sidewalk](https://www.amazon.com/Amazon-Sidewalk/), [AWS IoT Core](https://aws.amazon.com/iot-core/), and [Amazon Location Services](https://aws.amazon.com/location/) to help Solution Architects around the world to make use of it in their demos and workshops.
 
 ## Architecture Diagram
 
