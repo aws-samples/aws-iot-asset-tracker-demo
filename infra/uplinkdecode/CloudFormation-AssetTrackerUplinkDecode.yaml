@@ -1,0 +1,271 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+ AWS CloudFormation sample template for the Sidewalk Asset Tracker decode and defrag functions and DDB Tables
+Transform: "AWS::Serverless-2016-10-31"
+Resources:
+  UplinkPayloadsTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: "WirelessDeviceId"
+          AttributeType: "S"
+        - AttributeName: "timestamp"
+          AttributeType: "N"
+      BillingMode: PAY_PER_REQUEST
+      KeySchema: 
+        - AttributeName: "WirelessDeviceId"
+          KeyType: "HASH"
+        - AttributeName: "timestamp"
+          KeyType: "RANGE"
+      PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+      SSESpecification:
+          SSEEnabled: true
+      StreamSpecification: 
+          StreamViewType: NEW_IMAGE
+      TableClass: STANDARD
+      TableName: at-payloads
+
+  FragEventSourceDDBTableStream:
+    # DependsOn: UplinkDefragLambdaFunction
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      Enabled: True
+      FilterCriteria:
+        Filters:
+          - Pattern: '{ "dynamodb": { "NewImage": { "type": { "S": ["WIFI_END","GNSS_END"] } } } }'
+      EventSourceArn: !GetAtt UplinkPayloadsTable.StreamArn
+      FunctionName: !GetAtt UplinkDefragLambdaFunction.Arn
+      StartingPosition: LATEST
+  
+  SidewalkEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: "timestamp"
+          AttributeType: "S"
+      BillingMode: PAY_PER_REQUEST
+      KeySchema: 
+        - AttributeName: "timestamp"
+          KeyType: "HASH"
+      TableClass: STANDARD
+      TableName: sidewalk-events
+
+  DeviceConfigTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: "WirelessDeviceId"
+          AttributeType: "S"
+      BillingMode: PAY_PER_REQUEST
+      KeySchema: 
+        - AttributeName: "WirelessDeviceId"
+          KeyType: "HASH"
+      PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+      SSESpecification:
+          SSEEnabled: true
+      TableClass: STANDARD
+      TableName: at-config
+
+
+  UplinkDecodeLambdaFunction:
+    DependsOn: UplinkDecodeRole
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'UplinkDecode'
+      Handler: at-decode.lambda_handler
+      Runtime: python3.11
+      CodeUri: ./lambda/at_decode/at-decode.py
+      Role: !GetAtt UplinkDecodeRole.Arn
+      Environment: 
+        Variables:
+          UPLINK_PAYLOADS_TABLE: at-payloads
+
+  UplinkDecodeInvokePermission:
+    DependsOn: UplinkDecodeLambdaFunction
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !GetAtt UplinkDecodeLambdaFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: iot.amazonaws.com
+      SourceAccount: !Ref "AWS::AccountId"
+
+  UplinkDefragLambdaFunction:
+    DependsOn: UplinkDefragRole
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'UplinkDefrag'
+      Handler: at-defrag.lambda_handler
+      Runtime: python3.11
+      CodeUri: ./lambda/at_defrag/at-defrag.py
+      Role: !GetAtt UplinkDefragRole.Arn
+      Environment: 
+        Variables:
+          UPLINK_PAYLOADS_TABLE: at-payloads
+
+  UplinkIoTRule:
+    DependsOn: UplinkDecodeLambdaFunction
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: 'at_uplink_decode'
+      TopicRulePayload:
+        RuleDisabled: 'false'
+        Sql: SELECT * as at_uplink
+        Actions:
+        - Lambda:
+            FunctionArn: !GetAtt UplinkDecodeLambdaFunction.Arn
+
+  SidewalkEventsIoTRule:
+    DependsOn: SidewalkEventsRole
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: 'sidewalk_events'
+      TopicRulePayload:
+        RuleDisabled: 'false'
+        Sql: SELECT * AS event FROM '$aws/iotwireless/events/device_registration_state/+/sidewalk/wireless_devices'
+        Actions:
+        - DynamoDB:
+            TableName: sidewalk-events
+            RoleArn: !GetAtt SidewalkEventsRole.Arn
+            HashKeyField: 'timestamp'
+            HashKeyType: 'STRING'
+            HashKeyValue: 'timeStamp'
+            PayloadField: 'payload'
+
+  SidewalkEventsRole:
+    DependsOn: SidewalkEventsTable
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: "sidewalk_events_iot_role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 'iot.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: sidewalk_events_rule_policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                - dynamodb:PutItem
+                Resource:
+                - !GetAtt SidewalkEventsTable.Arn
+
+  UplinkDecodeRole:
+    DependsOn: 
+      - UplinkPayloadsTable
+      - DeviceConfigTable
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: "at_uplink_decode_role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: uplink_decode_policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: AllowUplinkPayloadTableInsert
+                Effect: Allow
+                Action:
+                - dynamodb:UpdateItem
+                Resource:
+                - !GetAtt UplinkPayloadsTable.Arn
+                - !GetAtt DeviceConfigTable.Arn
+              - Sid: UplinkDecodeLogging
+                Effect: Allow
+                Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                Resource:
+                - !Join ["", ["arn:aws:logs:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":*"]]
+              - Sid: UplinkDecodeGetPosition
+                Effect: Allow
+                Action:
+                - iotwireless:GetPositionEstimate
+                Resource:
+                - !Join ["", ["arn:aws:iotwireless:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":*"]]
+              - Sid: UplinkDecodeIoTActions
+                Effect: Allow
+                Action:
+                - iot:Publish
+                Resource:
+                - !Join ["", ["arn:aws:iot:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":topic/iot/assettracker"]]
+  
+  UplinkDefragRole:
+    DependsOn: UplinkPayloadsTable
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: "at_uplink_defrag_role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: uplink_defrag_policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: AllowUplinkPayloadTableStream
+                Effect: Allow
+                Action:
+                - dynamodb:UpdateItem
+                - dynamodb:DescribeStream
+                - dynamodb:GetRecords
+                - dynamodb:GetShardIterator
+                - dynamodb:ListStreams
+                Resource:
+                - !GetAtt UplinkPayloadsTable.StreamArn
+              - Sid: UplinkDefragLogging
+                Effect: Allow
+                Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                Resource:
+                - !Join ["", ["arn:aws:logs:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":*"]]
+              - Sid: UplinkDefragGetPosition
+                Effect: Allow
+                Action:
+                - iotwireless:GetPositionEstimate
+                Resource:
+                - !Join ["", ["arn:aws:iotwireless:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":*"]]
+              - Sid: UplinkDefragIoTActions
+                Effect: Allow
+                Action:
+                - iot:Publish
+                Resource:
+                - !Join ["", ["arn:aws:iot:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":topic/iot/assettracker"]]
+  
+Outputs:
+  UplinkPayloadsTableARN:
+    Value: !GetAtt UplinkPayloadsTable.Arn
+  SidewalkEventsTableARN:
+    Value: !GetAtt SidewalkEventsTable.Arn
+  DeviceConfigTableTableARN:
+    Value: !GetAtt DeviceConfigTable.Arn
+  UplinkDecodeLambdaFunctionARN:
+    Value: !GetAtt UplinkDecodeLambdaFunction.Arn
+  UplinkDefragLambdaFunctionARN:
+    Value: !GetAtt UplinkDefragLambdaFunction.Arn

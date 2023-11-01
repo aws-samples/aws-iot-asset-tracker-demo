@@ -4,9 +4,9 @@
   "description": "The **AssetTracker Demo** is a cloud native application built using an serverless architecture based on AWS services to show case [AWS IoT](https://aws.amazon.com/iot/) integrations for geospatial use cases in conjuction with the [Amazon Location Services](https://aws.amazon.com/location/) to help Solution Architects around the world to make use of it in their demos and workshops.",
   "main": "index.js",
   "workspaces": [
-    "infra",
+    "infra/backend",
     "frontend",
-    "assettracker_simulator",
+    "device/simulator",
     "scripts"
   ],
   "scripts": {
@@ -17,12 +17,12 @@
     "frontend:build": "npm run build -w frontend",
     "frontend:deploy": "npm run deploy -w frontend",
     "frontend:publish": "npm run publish -w frontend",
-    "infra:synth": "npm run cdk:synth -w infra",
-    "infra:bootstrap": "npm run cdk:bootstrap -w infra",
-    "infra:deploy": "npm run cdk:deploy -w infra",
-    "infra:deploy:hot": "npm run cdk:deploy:hot -w infra",
-    "infra:destroy": "npm run cdk:destroy -w infra",
-    "sim:start": "npm run simulate -w assettracker_simulator"
+    "infra:synth": "npm run cdk:synth -w infra/backend",
+    "infra:bootstrap": "npm run cdk:bootstrap -w infra/backend",
+    "infra:deploy": "npm run cdk:deploy -w infra/backend",
+    "infra:deploy:hot": "npm run cdk:deploy:hot -w infra/backend",
+    "infra:destroy": "npm run cdk:destroy -w infra/backend",
+    "sim:start": "npm run simulate -w device/simulator"
   },
   "repository": {
     "type": "git",

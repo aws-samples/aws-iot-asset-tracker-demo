@@ -29,7 +29,7 @@ const writeJSONFile = async (content, path) => {
 
 const main = async () => {
   const currentDir = process.cwd();
-  const basePath = "../infra/cdk.out";
+  const basePath = "../infra/backend/cdk.out";
   const stackName = "AssetTracker";
   const cfnTemplateFileName = `${stackName}.template.json`;
   const assetsFileName = `${stackName}.assets.json`;
