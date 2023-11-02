@@ -8,7 +8,7 @@ BUCKET_NAME="at-uplink-cf-$(date +%Y%m%d%M%s)"
 aws s3 mb s3://$BUCKET_NAME --region $AWS_REGION
 
 # Upload the required artifacts for deployment and package the cloudformation template.
-aws cloudformation package --template CloudFormation-AssetTrackerUplinkDecode.yaml --s3-bucket $BUCKET_NAME --output-template-file packaged-template.yaml
+aws cloudformation package --template template.yml --s3-bucket $BUCKET_NAME --output-template-file packaged-template.yaml
 
 # Deploy stack
 aws cloudformation deploy --template-file packaged-template.yaml --stack-name AssetTrackerUplinkDecode --capabilities CAPABILITY_NAMED_IAM --region $AWS_REGION

@@ -4,6 +4,7 @@ import base64
 import boto3
 from datetime import datetime
 
+
 # Constants
 TOPIC_NAME = 'iot/assettracker'
 
@@ -56,7 +57,7 @@ def lambda_handler(event, context):
     
     # Print the extracted data
     print(f'WirelessDeviceId: {uplink.get("WirelessDeviceId")}, '
-          f'Seq: {uplink.get("WirelessMetadata").get("Sidewalk").get("Seq")}, '
+          f'Seq: {uplink.get("WirelessMetadata").get("Seq")}, '
           f'Uplink Type: {at_uplink_type}, '
           f'frag count: {at_uplink_frag_cnt}, '
           f'Battery: {batt}%, '
@@ -71,7 +72,7 @@ def lambda_handler(event, context):
 
     # Get location
     location_response = get_location_from_iot_wireless(mac1, rssi1, mac2, rssi2)
-    
+    print(location_response)
     # Construct and publish tracker location payload
     tracker_location = construct_tracker_payload(location_response, timestamp, batt)
     publish_to_iot(tracker_location)
@@ -88,15 +89,14 @@ def get_location_from_iot_wireless(mac1, rssi1, mac2, rssi2):
     return json.loads(response['GeoJsonPayload'].read())
 
 def construct_tracker_payload(location_response, timestamp, batt):
-    loc = location_response.get("location")
-    coor = loc.get("coordinates")
-    prop = loc.get("properties")
+    coor = location_response.get("coordinates")
+    prop = location_response.get("properties")
     
     return {
         'deviceId': 'assettracker',
         'timestamp': timestamp,
-        'latitude': coor[0],
-        'longitude': coor[1],
+        'latitude': coor[1],
+        'longitude': coor[0],
         'accuracy': {'horizontal': prop.get("horizontalAccuracy")},
         'positionProperties': {'batteryLevel': batt}
     }
@@ -108,4 +108,3 @@ def publish_to_iot(payload):
         payload=json.dumps(payload)
     )
     print(f"IoT Data Response: {response}")
-
