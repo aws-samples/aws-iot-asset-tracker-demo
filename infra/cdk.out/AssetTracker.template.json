@@ -1,0 +1,2335 @@
+{
+ "Resources": {
+  "authConstructIdentityPool3CFBA9BD": {
+   "Type": "AWS::Cognito::IdentityPool",
+   "Properties": {
+    "AllowUnauthenticatedIdentities": true,
+    "CognitoIdentityProviders": []
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/authConstruct/IdentityPool/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Application uses unauthenticated access (i.e. guest) only, so this setting is needed.",
+       "id": "AwsSolutions-COG7"
+      }
+     ]
+    }
+   }
+  },
+  "authConstructIdentityPoolAuthenticatedRole14494F05": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRoleWithWebIdentity",
+       "Condition": {
+        "StringEquals": {
+         "cognito-identity.amazonaws.com:aud": {
+          "Ref": "authConstructIdentityPool3CFBA9BD"
+         }
+        },
+        "ForAnyValue:StringLike": {
+         "cognito-identity.amazonaws.com:amr": "authenticated"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Default Authenticated Role for Identity Pool ",
+       {
+        "Fn::GetAtt": [
+         "authConstructIdentityPool3CFBA9BD",
+         "Name"
+        ]
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/authConstruct/IdentityPool/AuthenticatedRole/Resource"
+   }
+  },
+  "authConstructIdentityPoolUnauthenticatedRoleE68A0498": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRoleWithWebIdentity",
+       "Condition": {
+        "StringEquals": {
+         "cognito-identity.amazonaws.com:aud": {
+          "Ref": "authConstructIdentityPool3CFBA9BD"
+         }
+        },
+        "ForAnyValue:StringLike": {
+         "cognito-identity.amazonaws.com:amr": "unauthenticated"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Default Unauthenticated Role for Identity Pool ",
+       {
+        "Fn::GetAtt": [
+         "authConstructIdentityPool3CFBA9BD",
+         "Name"
+        ]
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/authConstruct/IdentityPool/UnauthenticatedRole/Resource"
+   }
+  },
+  "authConstructIdentityPoolDefaultRoleAttachmentC74EFAFC": {
+   "Type": "AWS::Cognito::IdentityPoolRoleAttachment",
+   "Properties": {
+    "IdentityPoolId": {
+     "Ref": "authConstructIdentityPool3CFBA9BD"
+    },
+    "Roles": {
+     "authenticated": {
+      "Fn::GetAtt": [
+       "authConstructIdentityPoolAuthenticatedRole14494F05",
+       "Arn"
+      ]
+     },
+     "unauthenticated": {
+      "Fn::GetAtt": [
+       "authConstructIdentityPoolUnauthenticatedRoleE68A0498",
+       "Arn"
+      ]
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/authConstruct/IdentityPool/DefaultRoleAttachment/Resource"
+   }
+  },
+  "authConstructlocationService476A126E": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "geo:GetMapGlyphs",
+        "geo:GetMapSprites",
+        "geo:GetMapStyleDescriptor",
+        "geo:GetMapTile"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:geo:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":map/AssetTrackerMap"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "geo:BatchDeleteGeofence",
+        "geo:BatchPutGeofence",
+        "geo:ListGeofences"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:geo:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":geofence-collection/AssetTrackerGeofenceCollection"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "geo:CalculateRoute",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:geo:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":route-calculator/AssetTrackerRouteCalculator"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "authConstructlocationService476A126E",
+    "Roles": [
+     {
+      "Ref": "authConstructIdentityPoolUnauthenticatedRoleE68A0498"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/authConstruct/locationService/Resource"
+   }
+  },
+  "functionsConstructcertificateHandlerServiceRole88946C4A": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/certificateHandler/ServiceRole/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Intentionally using an AWS managed policy for AWS Lambda - AWSLambdaBasicExecutionRole",
+       "id": "AwsSolutions-IAM4"
+      }
+     ]
+    }
+   }
+  },
+  "functionsConstructcertificateHandlerFA0E34F2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "a1955540b0697f674c8397f10a0171056f65a4ca6a0731cd687abdd062be4c4c.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "functionsConstructcertificateHandlerServiceRole88946C4A",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "functionsConstructcertificateHandlerServiceRole88946C4A"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/certificateHandler/Resource",
+    "aws:asset:path": "asset.a1955540b0697f674c8397f10a0171056f65a4ca6a0731cd687abdd062be4c4c",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "functionsConstructcertificateHandlerLogRetention2F08DE1A": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "functionsConstructcertificateHandlerFA0E34F2"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/certificateHandler/LogRetention/Resource"
+   }
+  },
+  "functionsConstructcertificateHandlerPolicy4CA1FB98": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:CreateSecret",
+        "secretsmanager:DeleteSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:secretsmanager:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":secret:assettracker/iot-cert-??????"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "iot:CreateKeysAndCertificate",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "iot:DeleteCertificate",
+        "iot:UpdateCertificate"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:iot:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":cert/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "functionsConstructcertificateHandlerPolicy4CA1FB98",
+    "Roles": [
+     {
+      "Ref": "functionsConstructcertificateHandlerServiceRole88946C4A"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/certificateHandlerPolicy/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "This CDK Custom resource uses an AWS Lambda function to create an AWS IoT Core certificate & store it in AWS Secrets Manager. The id of the certificate is not known before creation so the policy must have a wildcard. The name of the secret contains a `/` symbol so we are using a wildcard. In any case this function is executed only during deployment.",
+       "id": "AwsSolutions-IAM5"
+      },
+      {
+       "reason": "IAM Action iot:CreateKeysAndCertificate does not support resource-level permission. Additionally, even if it did, the id of the certificate is not known before creation time.",
+       "id": "AwsSolutions-IAM5"
+      }
+     ]
+    }
+   }
+  },
+  "functionsConstructdecoderFnServiceRole16626820": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/decoderFn/ServiceRole/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Intentionally using an AWS managed policy for AWS Lambda - AWSLambdaBasicExecutionRole",
+       "id": "AwsSolutions-IAM4"
+      }
+     ]
+    }
+   }
+  },
+  "functionsConstructdecoderFnF54D7E49": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "18eae0521c7b655fe0b6a5d2ad46e473de160f260bef6947337ddf9c4720ffcb.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "functionsConstructdecoderFnServiceRole16626820",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "TRACKER_NAME": "AssetTracker",
+      "NODE_OPTIONS": "--enable-source-maps",
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 256,
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "functionsConstructdecoderFnServiceRole16626820"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/decoderFn/Resource",
+    "aws:asset:path": "asset.18eae0521c7b655fe0b6a5d2ad46e473de160f260bef6947337ddf9c4720ffcb",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "functionsConstructdecoderFnLogRetention888D24BD": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "functionsConstructdecoderFnF54D7E49"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/decoderFn/LogRetention/Resource"
+   }
+  },
+  "functionsConstructdecoderFnAssetTrackeriotCoreConstructTopicRule88846DF6IotLambdaFunctionActionBBAEBA2E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "functionsConstructdecoderFnF54D7E49",
+      "Arn"
+     ]
+    },
+    "Principal": "iot.amazonaws.com",
+    "SourceAccount": {
+     "Ref": "AWS::AccountId"
+    },
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "iotCoreConstructTopicRuleEF6296A1",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/decoderFn/AssetTrackeriotCoreConstructTopicRule88846DF6:IotLambdaFunctionAction"
+   }
+  },
+  "functionsConstructtrackerUpdatePolicyD8E241A9": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "geo:BatchUpdateDevicePosition",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:geo:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":tracker/AssetTracker"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "functionsConstructtrackerUpdatePolicyD8E241A9",
+    "Roles": [
+     {
+      "Ref": "functionsConstructdecoderFnServiceRole16626820"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/trackerUpdatePolicy/Resource"
+   }
+  },
+  "functionsConstructappsyncUpdatePositionFnServiceRole8BDF6E90": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncUpdatePositionFn/ServiceRole/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Intentionally using an AWS managed policy for AWS Lambda - AWSLambdaBasicExecutionRole",
+       "id": "AwsSolutions-IAM4"
+      }
+     ]
+    }
+   }
+  },
+  "functionsConstructappsyncUpdatePositionFnServiceRoleDefaultPolicyBCEE5B30": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "appsync:GraphQL",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":appsync:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":apis/",
+          {
+           "Fn::GetAtt": [
+            "apiConstructApi2055D09F",
+            "ApiId"
+           ]
+          },
+          "/types/Mutation/fields/updatePosition"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "functionsConstructappsyncUpdatePositionFnServiceRoleDefaultPolicyBCEE5B30",
+    "Roles": [
+     {
+      "Ref": "functionsConstructappsyncUpdatePositionFnServiceRole8BDF6E90"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncUpdatePositionFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "functionsConstructappsyncUpdatePositionFn04ADA705": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "d7bf282f672658e0bbd12b604093d0eae2029cf5c91fbd68b95e027a228cd719.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "functionsConstructappsyncUpdatePositionFnServiceRole8BDF6E90",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "NODE_OPTIONS": "--enable-source-maps",
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+      "GRAPHQL_URL": {
+       "Fn::GetAtt": [
+        "apiConstructApi2055D09F",
+        "GraphQLUrl"
+       ]
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 256,
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "functionsConstructappsyncUpdatePositionFnServiceRoleDefaultPolicyBCEE5B30",
+    "functionsConstructappsyncUpdatePositionFnServiceRole8BDF6E90"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncUpdatePositionFn/Resource",
+    "aws:asset:path": "asset.d7bf282f672658e0bbd12b604093d0eae2029cf5c91fbd68b95e027a228cd719",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "functionsConstructappsyncUpdatePositionFnLogRetentionD3CC4240": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "functionsConstructappsyncUpdatePositionFn04ADA705"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncUpdatePositionFn/LogRetention/Resource"
+   }
+  },
+  "functionsConstructappsyncSendGeofenceEventFnServiceRoleD8DC663E": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncSendGeofenceEventFn/ServiceRole/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Intentionally using an AWS managed policy for AWS Lambda - AWSLambdaBasicExecutionRole",
+       "id": "AwsSolutions-IAM4"
+      }
+     ]
+    }
+   }
+  },
+  "functionsConstructappsyncSendGeofenceEventFnServiceRoleDefaultPolicy9EF94FC3": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "appsync:GraphQL",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":appsync:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":apis/",
+          {
+           "Fn::GetAtt": [
+            "apiConstructApi2055D09F",
+            "ApiId"
+           ]
+          },
+          "/types/Mutation/fields/sendGeofenceEvent"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "functionsConstructappsyncSendGeofenceEventFnServiceRoleDefaultPolicy9EF94FC3",
+    "Roles": [
+     {
+      "Ref": "functionsConstructappsyncSendGeofenceEventFnServiceRoleD8DC663E"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncSendGeofenceEventFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "functionsConstructappsyncSendGeofenceEventFn530725F8": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "fa99b1bb59f4e1bb583d0911f0471bd496442fa472ee3e8deed9fb20d4aa880c.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "functionsConstructappsyncSendGeofenceEventFnServiceRoleD8DC663E",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "NODE_OPTIONS": "--enable-source-maps",
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+      "GRAPHQL_URL": {
+       "Fn::GetAtt": [
+        "apiConstructApi2055D09F",
+        "GraphQLUrl"
+       ]
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 256,
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "functionsConstructappsyncSendGeofenceEventFnServiceRoleDefaultPolicy9EF94FC3",
+    "functionsConstructappsyncSendGeofenceEventFnServiceRoleD8DC663E"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncSendGeofenceEventFn/Resource",
+    "aws:asset:path": "asset.fa99b1bb59f4e1bb583d0911f0471bd496442fa472ee3e8deed9fb20d4aa880c",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "functionsConstructappsyncSendGeofenceEventFnLogRetentionC34C4B15": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "functionsConstructappsyncSendGeofenceEventFn530725F8"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncSendGeofenceEventFn/LogRetention/Resource"
+   }
+  },
+  "functionsConstructappsyncTrackerHistoryFnServiceRoleBA79708A": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncTrackerHistoryFn/ServiceRole/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Intentionally using an AWS managed policy for AWS Lambda - AWSLambdaBasicExecutionRole",
+       "id": "AwsSolutions-IAM4"
+      }
+     ]
+    }
+   }
+  },
+  "functionsConstructappsyncTrackerHistoryFn387BEEC5": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "369c4bd7e8d1125ca6ada57a909653d80807c3f8214716f4043bbda125899483.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "functionsConstructappsyncTrackerHistoryFnServiceRoleBA79708A",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "TRACKER_NAME": "AssetTracker",
+      "NODE_OPTIONS": "--enable-source-maps",
+      "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 256,
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "functionsConstructappsyncTrackerHistoryFnServiceRoleBA79708A"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncTrackerHistoryFn/Resource",
+    "aws:asset:path": "asset.369c4bd7e8d1125ca6ada57a909653d80807c3f8214716f4043bbda125899483",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "functionsConstructappsyncTrackerHistoryFnLogRetention7F3468CE": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "functionsConstructappsyncTrackerHistoryFn387BEEC5"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/appsyncTrackerHistoryFn/LogRetention/Resource"
+   }
+  },
+  "functionsConstructtrackerGetPositionPolicyFAB81B87": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "geo:GetDevicePositionHistory",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:geo:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":tracker/AssetTracker"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "functionsConstructtrackerGetPositionPolicyFAB81B87",
+    "Roles": [
+     {
+      "Ref": "functionsConstructappsyncTrackerHistoryFnServiceRoleBA79708A"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/functionsConstruct/trackerGetPositionPolicy/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Resource created and managed by CDK.",
+       "id": "AwsSolutions-IAM4"
+      }
+     ]
+    }
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:DeleteRetentionPolicy",
+        "logs:PutRetentionPolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "Roles": [
+     {
+      "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Resource created and managed by CDK. This type of resource is a singleton fn that interacts with many resources so IAM policies are lax by design to allow this use case.",
+       "id": "AwsSolutions-IAM5"
+      }
+     ]
+    }
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Handler": "index.handler",
+    "Runtime": "nodejs16.x",
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "5fa1330271b8967d9254ba2d4a07144f8acefe8b77e6d6bba38261373a50d5f8.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource",
+    "aws:asset:path": "asset.5fa1330271b8967d9254ba2d4a07144f8acefe8b77e6d6bba38261373a50d5f8",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "apiConstructApi2055D09F": {
+   "Type": "AWS::AppSync::GraphQLApi",
+   "Properties": {
+    "AuthenticationType": "API_KEY",
+    "Name": "AssetTracker",
+    "AdditionalAuthenticationProviders": [
+     {
+      "AuthenticationType": "AWS_IAM"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "This API is deployed as part of an AWS workshop and as such it's short-lived. Analyzing the logs is not part of the workshop.",
+       "id": "AwsSolutions-ASC3"
+      }
+     ]
+    }
+   }
+  },
+  "apiConstructApiSchema24249A51": {
+   "Type": "AWS::AppSync::GraphQLSchema",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "apiConstructApi2055D09F",
+      "ApiId"
+     ]
+    },
+    "Definition": "enum GeofenceEventEnum {\n  ENTER\n  EXIT\n}\n\nenum PositionEventEnum {\n  UPDATE\n}\n\ntype Accuracy @aws_iam @aws_api_key {\n  horizontal: Float\n}\n\ntype Metadata @aws_iam @aws_api_key {\n  batteryLevel: Float\n}\n\ninterface LocationEventBase {\n  deviceId: ID\n  sampleTime: AWSDateTime!\n  accuracy: Accuracy\n  lng: Float!\n  lat: Float!\n}\n\ntype GeofenceEvent implements LocationEventBase @aws_iam {\n  deviceId: ID\n  sampleTime: AWSDateTime!\n  accuracy: Accuracy\n  lng: Float!\n  lat: Float!\n  type: GeofenceEventEnum!\n  geofenceId: String!\n}\n\ntype PositionEvent implements LocationEventBase @aws_iam {\n  deviceId: ID\n  sampleTime: AWSDateTime!\n  accuracy: Accuracy\n  lng: Float!\n  lat: Float!\n  type: PositionEventEnum!\n  trackerName: String!\n  receivedTime: AWSDateTime!\n  metadata: Metadata\n}\n\ntype PositionHistoryEntry implements LocationEventBase @aws_api_key {\n  deviceId: ID\n  sampleTime: AWSDateTime!\n  accuracy: Accuracy\n  lng: Float!\n  lat: Float!\n  trackerName: String!\n  receivedTime: AWSDateTime!\n  metadata: Metadata\n}\n\ninput AccuracyInput {\n  horizontal: Float\n}\n\ninput MetadataInput {\n  batteryLevel: Float\n}\n\ninput GeofenceEventInput {\n  deviceId: ID\n  sampleTime: AWSDateTime!\n  lng: Float!\n  lat: Float!\n  type: GeofenceEventEnum!\n  geofenceId: String!\n}\n\ninput PositionEventInput {\n  deviceId: ID\n  sampleTime: AWSDateTime!\n  lng: Float!\n  lat: Float!\n  type: PositionEventEnum!\n  trackerName: String!\n  receivedTime: AWSDateTime!\n  accuracy: AccuracyInput\n  metadata: MetadataInput\n}\n\ntype Query {\n  getDeviceHistory(deviceId: ID!, span: String): [PositionHistoryEntry]\n    @aws_api_key\n    @aws_iam\n}\n\ntype Mutation {\n  updatePosition(input: PositionEventInput): PositionEvent @aws_api_key @aws_iam\n  sendGeofenceEvent(input: GeofenceEventInput): GeofenceEvent\n    @aws_api_key\n    @aws_iam\n}\n\ntype Subscription {\n  onUpdatePosition: PositionEvent\n    @aws_subscribe(mutations: [\"updatePosition\"])\n    @aws_api_key\n  onGeofenceEvent: GeofenceEvent\n    @aws_subscribe(mutations: [\"sendGeofenceEvent\"])\n    @aws_api_key\n}\n"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/Schema"
+   }
+  },
+  "apiConstructApiDefaultApiKey8403A43E": {
+   "Type": "AWS::AppSync::ApiKey",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "apiConstructApi2055D09F",
+      "ApiId"
+     ]
+    },
+    "Expires": 1729625401
+   },
+   "DependsOn": [
+    "apiConstructApiSchema24249A51"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/DefaultApiKey"
+   }
+  },
+  "apiConstructApiNoneSource3D8ED514": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "apiConstructApi2055D09F",
+      "ApiId"
+     ]
+    },
+    "Name": "NoneSource",
+    "Type": "NONE"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/NoneSource/Resource"
+   }
+  },
+  "apiConstructApiupdatepositionresolverA82C5340": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "apiConstructApi2055D09F",
+      "ApiId"
+     ]
+    },
+    "FieldName": "updatePosition",
+    "TypeName": "Mutation",
+    "DataSourceName": "NoneSource",
+    "Kind": "UNIT",
+    "RequestMappingTemplate": "{\n        \"version\": \"2018-05-29\",\n        \"payload\": $util.toJson($context.arguments)\n    }",
+    "ResponseMappingTemplate": "$util.toJson($context.result.input)"
+   },
+   "DependsOn": [
+    "apiConstructApiNoneSource3D8ED514",
+    "apiConstructApiSchema24249A51"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/update-position-resolver/Resource"
+   }
+  },
+  "apiConstructApisendgeofenceeventresolverFB6251BA": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "apiConstructApi2055D09F",
+      "ApiId"
+     ]
+    },
+    "FieldName": "sendGeofenceEvent",
+    "TypeName": "Mutation",
+    "DataSourceName": "NoneSource",
+    "Kind": "UNIT",
+    "RequestMappingTemplate": "{\n        \"version\": \"2018-05-29\",\n        \"payload\": $util.toJson($context.arguments)\n    }",
+    "ResponseMappingTemplate": "$util.toJson($context.result.input)"
+   },
+   "DependsOn": [
+    "apiConstructApiNoneSource3D8ED514",
+    "apiConstructApiSchema24249A51"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/send-geofence-event-resolver/Resource"
+   }
+  },
+  "apiConstructApiLambdaSourceServiceRole180FF2CB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/LambdaSource/ServiceRole/Resource"
+   }
+  },
+  "apiConstructApiLambdaSourceServiceRoleDefaultPolicyDC319B2B": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "functionsConstructappsyncTrackerHistoryFn387BEEC5",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "functionsConstructappsyncTrackerHistoryFn387BEEC5",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "apiConstructApiLambdaSourceServiceRoleDefaultPolicyDC319B2B",
+    "Roles": [
+     {
+      "Ref": "apiConstructApiLambdaSourceServiceRole180FF2CB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/LambdaSource/ServiceRole/DefaultPolicy/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "The API needs to access the Lambda function.",
+       "id": "AwsSolutions-IAM5"
+      }
+     ]
+    }
+   }
+  },
+  "apiConstructApiLambdaSource7FD01AD7": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "apiConstructApi2055D09F",
+      "ApiId"
+     ]
+    },
+    "Name": "LambdaSource",
+    "Type": "AWS_LAMBDA",
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::GetAtt": [
+       "functionsConstructappsyncTrackerHistoryFn387BEEC5",
+       "Arn"
+      ]
+     }
+    },
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "apiConstructApiLambdaSourceServiceRole180FF2CB",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/LambdaSource/Resource"
+   }
+  },
+  "apiConstructApigetdevicehistoryresolver6C47A690": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "apiConstructApi2055D09F",
+      "ApiId"
+     ]
+    },
+    "FieldName": "getDeviceHistory",
+    "TypeName": "Query",
+    "DataSourceName": "LambdaSource",
+    "Kind": "UNIT",
+    "RequestMappingTemplate": "{\n        \"version\": \"2018-05-29\",\n        \"operation\": \"Invoke\",\n        \"payload\": $util.toJson($context)\n    }",
+    "ResponseMappingTemplate": "#if($ctx.error)\n        $util.error($ctx.error.message, $ctx.error.type)\n      #end\n      $util.toJson($ctx.result)"
+   },
+   "DependsOn": [
+    "apiConstructApiLambdaSource7FD01AD7",
+    "apiConstructApiSchema24249A51"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/apiConstruct/Api/get-device-history-resolver/Resource"
+   }
+  },
+  "iotCoreConstructIoTCertProviderframeworkonEventServiceRole3ECEF045": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/IoTCertProvider/framework-onEvent/ServiceRole/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Resource created and managed by CDK.",
+       "id": "AwsSolutions-IAM4"
+      }
+     ]
+    }
+   }
+  },
+  "iotCoreConstructIoTCertProviderframeworkonEventServiceRoleDefaultPolicy77164B07": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "functionsConstructcertificateHandlerFA0E34F2",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "functionsConstructcertificateHandlerFA0E34F2",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "iotCoreConstructIoTCertProviderframeworkonEventServiceRoleDefaultPolicy77164B07",
+    "Roles": [
+     {
+      "Ref": "iotCoreConstructIoTCertProviderframeworkonEventServiceRole3ECEF045"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/IoTCertProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Resource created and managed by CDK. This type of resource is a singleton fn that interacts with many resources so IAM policies are lax by design to allow this use case.",
+       "id": "AwsSolutions-IAM5"
+      }
+     ]
+    }
+   }
+  },
+  "iotCoreConstructIoTCertProviderframeworkonEventDE3EDC60": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "iotCoreConstructIoTCertProviderframeworkonEventServiceRole3ECEF045",
+      "Arn"
+     ]
+    },
+    "Description": "AWS CDK resource provider framework - onEvent (AssetTracker/iotCoreConstruct/IoTCertProvider)",
+    "Environment": {
+     "Variables": {
+      "USER_ON_EVENT_FUNCTION_ARN": {
+       "Fn::GetAtt": [
+        "functionsConstructcertificateHandlerFA0E34F2",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "framework.onEvent",
+    "Runtime": "nodejs18.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "iotCoreConstructIoTCertProviderframeworkonEventServiceRoleDefaultPolicy77164B07",
+    "iotCoreConstructIoTCertProviderframeworkonEventServiceRole3ECEF045"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/IoTCertProvider/framework-onEvent/Resource",
+    "aws:asset:path": "asset.f2d30cfc360482320a52a4fcde8a70f3569df79ab30be24650fda58eb60052cf",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Resource created and managed by CDK.",
+       "id": "AwsSolutions-L1"
+      }
+     ]
+    }
+   }
+  },
+  "iotCoreConstructIoTCertProviderframeworkonEventLogRetentionF32D89B9": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "iotCoreConstructIoTCertProviderframeworkonEventDE3EDC60"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/IoTCertProvider/framework-onEvent/LogRetention/Resource"
+   }
+  },
+  "iotCoreConstructAWSIoTCert4F7BD3C5": {
+   "Type": "AWS::CloudFormation::CustomResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "iotCoreConstructIoTCertProviderframeworkonEventDE3EDC60",
+      "Arn"
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/AWS:IoTCert/Default"
+   }
+  },
+  "iotCoreConstructPolicyC2429B02": {
+   "Type": "AWS::IoT::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Effect": "Allow",
+       "Action": "iot:Connect",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:iot:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":client/assettracker"
+         ]
+        ]
+       }
+      },
+      {
+       "Effect": "Allow",
+       "Action": "iot:Publish",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:iot:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":topic/iot/assettracker"
+         ]
+        ]
+       }
+      }
+     ]
+    },
+    "PolicyName": "assettracker-policy"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/Policy"
+   }
+  },
+  "iotCoreConstructMyCfnPolicyPrincipalAttachment89D8EB68": {
+   "Type": "AWS::IoT::PolicyPrincipalAttachment",
+   "Properties": {
+    "PolicyName": "assettracker-policy",
+    "Principal": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:iot:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":cert/",
+       {
+        "Fn::GetAtt": [
+         "iotCoreConstructAWSIoTCert4F7BD3C5",
+         "certificateId"
+        ]
+       }
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "iotCoreConstructPolicyC2429B02"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/MyCfnPolicyPrincipalAttachment"
+   }
+  },
+  "iotCoreConstructThingA5AF2F28": {
+   "Type": "AWS::IoT::Thing",
+   "Properties": {
+    "ThingName": "assettracker"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/Thing"
+   }
+  },
+  "iotCoreConstructMyCfnThingPrincipalAttachmentA0B341BF": {
+   "Type": "AWS::IoT::ThingPrincipalAttachment",
+   "Properties": {
+    "Principal": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:iot:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":cert/",
+       {
+        "Fn::GetAtt": [
+         "iotCoreConstructAWSIoTCert4F7BD3C5",
+         "certificateId"
+        ]
+       }
+      ]
+     ]
+    },
+    "ThingName": "assettracker"
+   },
+   "DependsOn": [
+    "iotCoreConstructThingA5AF2F28"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/MyCfnThingPrincipalAttachment"
+   }
+  },
+  "iotCoreConstructErrorLogGroup41563247": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 1
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/ErrorLogGroup/Resource"
+   }
+  },
+  "iotCoreConstructTopicRuleTopicRuleActionRole56D6CB5F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "iot.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/TopicRule/TopicRuleActionRole/Resource"
+   }
+  },
+  "iotCoreConstructTopicRuleTopicRuleActionRoleDefaultPolicyEF9AA666": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:CreateLogStream",
+        "logs:DescribeLogStreams",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "iotCoreConstructErrorLogGroup41563247",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "iotCoreConstructTopicRuleTopicRuleActionRoleDefaultPolicyEF9AA666",
+    "Roles": [
+     {
+      "Ref": "iotCoreConstructTopicRuleTopicRuleActionRole56D6CB5F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/TopicRule/TopicRuleActionRole/DefaultPolicy/Resource"
+   }
+  },
+  "iotCoreConstructTopicRuleEF6296A1": {
+   "Type": "AWS::IoT::TopicRule",
+   "Properties": {
+    "TopicRulePayload": {
+     "Actions": [
+      {
+       "Lambda": {
+        "FunctionArn": {
+         "Fn::GetAtt": [
+          "functionsConstructdecoderFnF54D7E49",
+          "Arn"
+         ]
+        }
+       }
+      }
+     ],
+     "AwsIotSqlVersion": "2016-03-23",
+     "ErrorAction": {
+      "CloudwatchLogs": {
+       "LogGroupName": {
+        "Ref": "iotCoreConstructErrorLogGroup41563247"
+       },
+       "RoleArn": {
+        "Fn::GetAtt": [
+         "iotCoreConstructTopicRuleTopicRuleActionRole56D6CB5F",
+         "Arn"
+        ]
+       }
+      }
+     },
+     "Sql": "SELECT * FROM 'iot/assettracker'"
+    },
+    "RuleName": "assetTrackerRule"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/iotCoreConstruct/TopicRule/Resource"
+   }
+  },
+  "webConstructwebstaticassetsCA5C9300": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/webConstruct/web-static-assets/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Customers deploying the solution are responsible for providing a logging bucket to send the logs to, otherwise we will need a bucket to store the logs in, which would also need a bucket to send the logs to, and so on.",
+       "id": "AwsSolutions-S1"
+      }
+     ]
+    }
+   }
+  },
+  "webConstructwebstaticassetsPolicy96BD50DC": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "webConstructwebstaticassetsCA5C9300"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "webConstructwebstaticassetsCA5C9300",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "webConstructwebstaticassetsCA5C9300",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "s3:GetObject",
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "webConstructstaticassetcdnOrigin1S3Origin1A8C3C06",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "webConstructwebstaticassetsCA5C9300",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/webConstruct/web-static-assets/Policy/Resource"
+   }
+  },
+  "webConstructresponseheaderspolicyCA3098DF": {
+   "Type": "AWS::CloudFront::ResponseHeadersPolicy",
+   "Properties": {
+    "ResponseHeadersPolicyConfig": {
+     "Name": "AssetTrackerwebConstructresponseheaderspolicy3C399BE7",
+     "SecurityHeadersConfig": {
+      "ContentTypeOptions": {
+       "Override": true
+      },
+      "FrameOptions": {
+       "FrameOption": "DENY",
+       "Override": true
+      },
+      "ReferrerPolicy": {
+       "Override": true,
+       "ReferrerPolicy": "strict-origin-when-cross-origin"
+      },
+      "StrictTransportSecurity": {
+       "AccessControlMaxAgeSec": 31536000,
+       "IncludeSubdomains": true,
+       "Override": true,
+       "Preload": true
+      },
+      "XSSProtection": {
+       "ModeBlock": true,
+       "Override": true,
+       "Protection": true
+      }
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/webConstruct/response-headers-policy/Resource"
+   }
+  },
+  "webConstructstaticassetcdnOrigin1S3Origin1A8C3C06": {
+   "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+   "Properties": {
+    "CloudFrontOriginAccessIdentityConfig": {
+     "Comment": "Identity for AssetTrackerwebConstructstaticassetcdnOrigin16ABA10AD"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/webConstruct/static-asset-cdn/Origin1/S3Origin/Resource"
+   }
+  },
+  "webConstructstaticassetcdn321ABF79": {
+   "Type": "AWS::CloudFront::Distribution",
+   "Properties": {
+    "DistributionConfig": {
+     "CustomErrorResponses": [
+      {
+       "ErrorCachingMinTTL": 0,
+       "ErrorCode": 404,
+       "ResponseCode": 200,
+       "ResponsePagePath": "/index.html"
+      }
+     ],
+     "DefaultCacheBehavior": {
+      "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+      "Compress": true,
+      "ResponseHeadersPolicyId": {
+       "Ref": "webConstructresponseheaderspolicyCA3098DF"
+      },
+      "TargetOriginId": "AssetTrackerwebConstructstaticassetcdnOrigin16ABA10AD",
+      "ViewerProtocolPolicy": "redirect-to-https"
+     },
+     "DefaultRootObject": "index.html",
+     "Enabled": true,
+     "HttpVersion": "http2and3",
+     "IPV6Enabled": true,
+     "Origins": [
+      {
+       "DomainName": {
+        "Fn::GetAtt": [
+         "webConstructwebstaticassetsCA5C9300",
+         "RegionalDomainName"
+        ]
+       },
+       "Id": "AssetTrackerwebConstructstaticassetcdnOrigin16ABA10AD",
+       "S3OriginConfig": {
+        "OriginAccessIdentity": {
+         "Fn::Join": [
+          "",
+          [
+           "origin-access-identity/cloudfront/",
+           {
+            "Ref": "webConstructstaticassetcdnOrigin1S3Origin1A8C3C06"
+           }
+          ]
+         ]
+        }
+       }
+      }
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/webConstruct/static-asset-cdn/Resource",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "Customers deploying the solution are responsible for providing a logging bucket to send the logs to, otherwise we will need a bucket to store the logs in, which would also need a bucket to send the logs to, and so on.",
+       "id": "AwsSolutions-CFR3"
+      },
+      {
+       "reason": "Geo restriction is not required for this solution as the workshop is intended for customers across regions. If you are deploying this solution in a production environment, please consider enabling geo restriction.",
+       "id": "AwsSolutions-CFR1"
+      },
+      {
+       "reason": "AWS WAF is not required for this solution as the workshop is intended for customers across regions. If you are deploying this solution in a production environment, please consider adding a WAF to protect the distribution.",
+       "id": "AwsSolutions-CFR2"
+      },
+      {
+       "reason": "The solution does not require a custom SSL certificate and we are setting TLSv1.2 and SNI. If you are deploying this solution in a production environment, please consider adding a custom SSL certificate.",
+       "id": "AwsSolutions-CFR4"
+      }
+     ]
+    }
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31TTW/bMAz9LbnLatZh2I5LU7QbFrSZs3ugyKrNRBY1UcoQGP7vkxQ7Tot1J/LxU3wib/mXz7ybz8QfKmR1KDTseLfxQh5YNG07ibUBj7xbvpjvlTIe/GmNqNkbXKJWCx/zmjYaewai5V0ypsAs16hBnhI8az3Tot1VYmuwUnviT1k8BCM9oGH0cSuIlCe+SCJi3t0FeVD+TpBiZzVVG7SzmJpc47FVnuLSIb1EuRaIEhrNMRZr4t0K61L5NGB0RvDoMNiUM+o9E9bSyUjePTphm996YSEFZPRz9RptZKNakQzR/kOd2BMadS+82GBwMrN0hUpFqI/KZfJGfZVnmKIiyejzSG+pXTswEqzQ048k568GTH1R3gtCC7IMOpaXGkP14tDELvEVFg2pb0pUytHU8d+OeyDvYBcye88OajALKRXRuDMpdZnqP6T670Vcl+n7TMvI1nPwNniWlyPuaz2MdgmRgTy2Wzdg4muHR6gSp9lzXWuJpoLz588LoW0j+Hz2dTiJmyTHOyhgeJ2NOz+Edq/u4r9HgX7ImVjuWdp/vqeb4+2cf+IfZnsCKFyIVVrFy7P8C+0a6KGnAwAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AssetTracker/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Outputs": {
+  "authConstructIdentityPoolId47BB0985": {
+   "Value": {
+    "Ref": "authConstructIdentityPool3CFBA9BD"
+   }
+  },
+  "apiConstructApiUrlC3CD3F01": {
+   "Value": {
+    "Fn::GetAtt": [
+     "apiConstructApi2055D09F",
+     "GraphQLUrl"
+    ]
+   }
+  },
+  "apiConstructApiId826C5FAE": {
+   "Value": {
+    "Fn::GetAtt": [
+     "apiConstructApi2055D09F",
+     "ApiId"
+    ]
+   }
+  },
+  "apiConstructApiKeyB868CF24": {
+   "Value": {
+    "Fn::GetAtt": [
+     "apiConstructApiDefaultApiKey8403A43E",
+     "ApiKey"
+    ]
+   }
+  },
+  "webConstructwebStaticAssetsBucketName5D5D2DEA": {
+   "Value": {
+    "Ref": "webConstructwebstaticassetsCA5C9300"
+   }
+  },
+  "webConstructcloudfrontDistributionId574358B2": {
+   "Value": {
+    "Ref": "webConstructstaticassetcdn321ABF79"
+   }
+  },
+  "webConstructcloudfrontDomainNameB13FBE30": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Fn::GetAtt": [
+        "webConstructstaticassetcdn321ABF79",
+        "DomainName"
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  "AWSRegion": {
+   "Value": {
+    "Ref": "AWS::Region"
+   }
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-2"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

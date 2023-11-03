@@ -200,7 +200,7 @@ Resources:
                 Action:
                 - iotwireless:GetPositionEstimate
                 Resource:
-                - !Join ["", ["arn:aws:iotwireless:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":*"]]
+                - "*"
               - Sid: UplinkDecodeIoTActions
                 Effect: Allow
                 Action:
@@ -250,7 +250,7 @@ Resources:
                 Action:
                 - iotwireless:GetPositionEstimate
                 Resource:
-                - !Join ["", ["arn:aws:iotwireless:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":*"]]
+                - "*"
               - Sid: UplinkDefragIoTActions
                 Effect: Allow
                 Action:
