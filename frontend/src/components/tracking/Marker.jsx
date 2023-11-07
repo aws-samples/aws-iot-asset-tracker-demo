@@ -6,7 +6,6 @@ import { Marker as MapMarker, Source, Layer } from "react-map-gl";
 import { createGeoJSONCircle } from "./Marker.helpers";
 import { Hub } from "@aws-amplify/core";
 import {Popup} from "react-map-gl";
-import { format } from "date-fns";
 
 export const Marker = ({ isShowingHistory, isTrackingChecked }) => {
   const [marker, setMarker] = useState();
@@ -49,7 +48,7 @@ export const Marker = ({ isShowingHistory, isTrackingChecked }) => {
           anchor="top-right"
           onClose={()=> setShowPopup(!showPopup)}
           offset = {20}>
-          <p> <strong> Lattitude: </strong> {Math.round(marker.lat * 1000000)/1000000} </p>
+          <p> <strong> Latitude: </strong> {Math.round(marker.lat * 1000000)/1000000} </p>
           <p> <strong> Longitude: </strong> {Math.round(marker.lng * 1000000)/1000000} </p>
           <p> <strong> Battery: </strong> {marker.metadata.batteryLevel} </p>
           <p> <strong> SampleTime: </strong> {marker.sampleTime} </p>
