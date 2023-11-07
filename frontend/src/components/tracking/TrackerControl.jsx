@@ -64,7 +64,7 @@ export const TrackerControl = () => {
         onClick={() => setIsOpenedPanel(!isOpenedPanel)}
         isSubscribed={subscriptionsRef.current.positionUpdates}
       />
-      <Marker isShowingHistory={isShowingHistory} />
+      <Marker isShowingHistory={isShowingHistory} isTrackingChecked={isTrackingChecked}/>
       <MarkerHistory
         isShowingHistory={isShowingHistory}
         span={span}
