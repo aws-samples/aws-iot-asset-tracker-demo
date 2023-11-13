@@ -42,5 +42,8 @@
   "bugs": {
     "url": "https://github.com/aws-samples/aws-iot-asset-tracker-demo/issues"
   },
-  "homepage": "https://github.com/aws-samples/aws-iot-asset-tracker-demo#readme"
+  "homepage": "https://github.com/aws-samples/aws-iot-asset-tracker-demo#readme",
+  "dependencies": {
+    "cdk-nag": "^2.27.185"
+  }
 }

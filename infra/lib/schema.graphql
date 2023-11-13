@@ -1,0 +1,108 @@
+enum GeofenceEventEnum {
+  ENTER
+  EXIT
+}
+
+enum PositionEventEnum {
+  UPDATE
+}
+
+type Accuracy @aws_iam @aws_api_key {
+  horizontal: Float
+}
+
+type Metadata @aws_iam @aws_api_key {
+  batteryLevel: Float
+}
+
+interface LocationEventBase {
+  deviceId: ID
+  sampleTime: AWSDateTime!
+  accuracy: Accuracy
+  lng: Float!
+  lat: Float!
+}
+
+type GeofenceEvent implements LocationEventBase @aws_iam {
+  deviceId: ID
+  sampleTime: AWSDateTime!
+  accuracy: Accuracy
+  lng: Float!
+  lat: Float!
+  type: GeofenceEventEnum!
+  geofenceId: String!
+}
+
+type PositionEvent implements LocationEventBase @aws_iam {
+  deviceId: ID
+  sampleTime: AWSDateTime!
+  accuracy: Accuracy
+  lng: Float!
+  lat: Float!
+  type: PositionEventEnum!
+  trackerName: String!
+  receivedTime: AWSDateTime!
+  metadata: Metadata
+}
+
+type PositionHistoryEntry implements LocationEventBase @aws_api_key {
+  deviceId: ID
+  sampleTime: AWSDateTime!
+  accuracy: Accuracy
+  lng: Float!
+  lat: Float!
+  trackerName: String!
+  receivedTime: AWSDateTime!
+  metadata: Metadata
+}
+
+input AccuracyInput {
+  horizontal: Float
+}
+
+input MetadataInput {
+  batteryLevel: Float
+}
+
+input GeofenceEventInput {
+  deviceId: ID
+  sampleTime: AWSDateTime!
+  lng: Float!
+  lat: Float!
+  type: GeofenceEventEnum!
+  geofenceId: String!
+}
+
+input PositionEventInput {
+  deviceId: ID
+  sampleTime: AWSDateTime!
+  lng: Float!
+  lat: Float!
+  type: PositionEventEnum!
+  trackerName: String!
+  receivedTime: AWSDateTime!
+  accuracy: AccuracyInput
+  metadata: MetadataInput
+}
+
+type Query {
+  getDeviceHistory(deviceId: ID!, span: String): [PositionHistoryEntry]
+    @aws_api_key
+    @aws_iam
+}
+
+type Mutation {
+  updatePosition(input: PositionEventInput): PositionEvent @aws_api_key @aws_iam
+  sendGeofenceEvent(input: GeofenceEventInput): GeofenceEvent
+    @aws_api_key
+    @aws_iam
+}
+
+type Subscription {
+  onUpdatePosition: PositionEvent
+    @aws_subscribe(mutations: ["updatePosition"])
+    @aws_api_key
+  onGeofenceEvent: GeofenceEvent
+    @aws_subscribe(mutations: ["sendGeofenceEvent"])
+    @aws_api_key
+}
