@@ -10,7 +10,7 @@ import combine from "@turf/combine";
 
 export const MarkerHistory = ({ isShowingHistory, span, setError }) => {
   const [markers, setMarkers] = useState([]);
-  const [pointsLine, setPointsLine] = useState([]);
+  const [pointsLine, setPointsLine] = useState(undefined);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -25,6 +25,12 @@ export const MarkerHistory = ({ isShowingHistory, span, setError }) => {
         const { getDeviceHistory: points } = history.data;
         setMarkers(points);
 
+        if (points.length < 2) {
+          console.debug(
+            "Only one point present in the history for this range, skipping line drawing"
+          );
+          return;
+        }
         // Combine all points into a single line
         const lineFeature = combine(
           featureCollection(points.map((p) => point([p.lng, p.lat], p))),

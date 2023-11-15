@@ -34,8 +34,8 @@
     "typescript": "~5.1.6"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^1.11.1",
-    "@aws-lambda-powertools/tracer": "^1.11.1",
+    "@aws-lambda-powertools/logger": "^1.15.0",
+    "@aws-lambda-powertools/tracer": "^1.15.0",
     "@aws-sdk/client-iot": "^3.369.0",
     "@aws-sdk/client-location": "^3.369.0",
     "@aws-sdk/client-secrets-manager": "^3.369.0",
