@@ -4,11 +4,11 @@ The **Asset Tracker Demo** is a cloud native application built using an serverle
 
 ## Architecture Diagram
 
-TODO: Add arch diagram
+![Asset Tracker Architecture](infra/architecture.png "Asset Tracker Architecture")
 
 ## How to install
 
-If you want to build the application, follow this guided workshop: TODO: Add workshop link
+If you want to build the application, follow this guided workshop: [https://catalog.workshops.aws/sidewalk-asset-tracking/en-US](https://catalog.workshops.aws/sidewalk-asset-tracking/en-US)
 
 ## Contributions
 

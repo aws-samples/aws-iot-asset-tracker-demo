@@ -184,6 +184,7 @@ Resources:
                 Effect: Allow
                 Action:
                 - dynamodb:UpdateItem
+                - dynamodb:PutItem
                 Resource:
                 - !GetAtt UplinkPayloadsTable.Arn
                 - !GetAtt DeviceConfigTable.Arn
@@ -230,13 +231,20 @@ Resources:
               - Sid: AllowUplinkPayloadTableStream
                 Effect: Allow
                 Action:
-                - dynamodb:UpdateItem
                 - dynamodb:DescribeStream
                 - dynamodb:GetRecords
                 - dynamodb:GetShardIterator
                 - dynamodb:ListStreams
                 Resource:
                 - !GetAtt UplinkPayloadsTable.StreamArn
+              - Sid: AllowUplinkPayloadTable
+                Effect: Allow
+                Action:
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+                Resource:
+                - !GetAtt UplinkPayloadsTable.Arn
               - Sid: UplinkDefragLogging
                 Effect: Allow
                 Action:
