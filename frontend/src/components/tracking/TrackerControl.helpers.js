@@ -10,10 +10,10 @@ import { onGeofenceEvent, onUpdatePosition } from "../common/subscriptions";
 const handlePositionUpdate = ({ value: { data } }) => {
   const { onUpdatePosition } = data;
   console.debug("Position update received", onUpdatePosition);
-  const { lng, lat, accuracy, metadata } = onUpdatePosition;
+  const { lng, lat, accuracy, sampleTime, metadata } = onUpdatePosition;
   Hub.dispatch("assetTrackerUpdates", {
     event: "positionUpdate",
-    data: { lng, lat, accuracy, metadata },
+    data: { lng, lat, accuracy, sampleTime, metadata },
   });
 };
 
