@@ -75,14 +75,15 @@ def lambda_handler(event, context):
                     TableName=payload_table_name,
                     Item={
                         'WirelessDeviceId': {'S': devid},
-                        'timestamp': {'N': int(timestamp)},
-                        'seq': {'N': int(seq)},
+                        'timestamp': {'N': str(timestamp)},
+                        'seq': {'N': str(seq)},
                         'type': {'S': at_uplink_type},
-                        'battery': {'N': int(batt)},
-                        'temperature': {'N': int(temp)},
-                        'humidity': {'N': int(hum)},
+                        'frag cnt': {'N': str(num_msg)},
+                        'battery': {'N': str(batt)},
+                        'temperature': {'N': str(temp)},
+                        'humidity': {'N': str(hum)},
                         'motion': {'S': str(motion)},
-                        'max accel': {'N': max_accel}
+                        'max accel': {'N': str(max_accel)}
                     }
                 )
                 print(f"DynamoDB write response: {response}")
