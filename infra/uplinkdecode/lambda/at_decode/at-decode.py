@@ -53,6 +53,7 @@ def lambda_handler(event, context):
             print(f'CONFIG! TBD')
         case "NOLOC":
             # Extracting the data
+            num_msg = (decoded_bytes[0] & 0x38)>>3
             batt = decoded_bytes[1]
             temp = to_signed_byte(decoded_bytes[2])
             hum = int(decoded_bytes[3])
@@ -78,7 +79,6 @@ def lambda_handler(event, context):
                         'timestamp': {'N': str(timestamp)},
                         'seq': {'N': str(seq)},
                         'type': {'S': at_uplink_type},
-                        'frag cnt': {'N': str(num_msg)},
                         'battery': {'N': str(batt)},
                         'temperature': {'N': str(temp)},
                         'humidity': {'N': str(hum)},
