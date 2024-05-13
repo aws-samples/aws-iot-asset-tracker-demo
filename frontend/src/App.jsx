@@ -9,8 +9,8 @@ import { TrackerControl } from "./components/tracking/TrackerControl";
 import { DistanceControl } from "./components/routing/DistanceControl";
 
 const coordinates = {
-  longitude: -115.17077150978058,
-  latitude: 36.12309017212961,
+  longitude: -122.34291221291802,
+  latitude: 47.618522907982765,
 };
 
 const App = () => {
