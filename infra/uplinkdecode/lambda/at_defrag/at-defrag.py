@@ -70,10 +70,10 @@ def lambda_handler(event, context):
                     Timestamp=datetime.utcnow().timestamp()
                 )
 
-                # if a position is resolved, write it back to the first frag entry in the payloads table
+                # TODO - if a position is resolved, write it back to the first frag entry in the payloads table
                 geo_location = json.loads(iot_response['GeoJsonPayload'].read())
                 print(geo_location)
-                tracker_location = construct_tracker_payload(geo_location, first_timestamp)
+                tracker_location = construct_tracker_payload_wifi(geo_location, first_timestamp)
                 # try:
                 #     response = dynamodb.updateitem(
                 #         Key = {'WirelessDeviceId': {'S': devid}, 'timestamp': {'N': str(first_timestamp)}},
@@ -111,10 +111,10 @@ def lambda_handler(event, context):
                         }
                 )
                 
-                # if a position is resolved, write it back to the first frag entry in the payloads table
+                # TODO - if a position is resolved, write it back to the first frag entry in the payloads table
                 geo_location = json.loads(iot_response['GeoJsonPayload'].read())
                 print(geo_location)
-                tracker_location = construct_tracker_payload(geo_location, first_timestamp)
+                tracker_location = construct_tracker_payload_gnss(geo_location, first_timestamp)
                 # try:
                 #     response = dynamodb.updateitem(
                 #         Key = {'WirelessDeviceId': {'S': devid}, 'timestamp': {'N': str(first_timestamp)}},
@@ -136,17 +136,31 @@ def lambda_handler(event, context):
 
     return {'statusCode': 200 }
 
-
-def construct_tracker_payload(location_response, timestamp):
+# AICDL is flipping LON-LAT for GNSS, thus requring diff functions
+def construct_tracker_payload_gnss(location_response, timestamp):
     # loc = location_response.get("location")
     coor = location_response.get("coordinates")
     prop = location_response.get("properties")
     
     return {
         'deviceId': 'assettracker',
-        'timestamp': str(timestamp),
+        'timestamp': int(timestamp),
         'latitude': coor[0],
         'longitude': coor[1],
+        'accuracy': {'horizontal': prop.get("horizontalAccuracy")},
+        'positionProperties': {'batteryLevel': 95}
+    }
+
+def construct_tracker_payload_wifi(location_response, timestamp):
+    # loc = location_response.get("location")
+    coor = location_response.get("coordinates")
+    prop = location_response.get("properties")
+    
+    return {
+        'deviceId': 'assettracker',
+        'timestamp': int(timestamp),
+        'latitude': coor[1],
+        'longitude': coor[0],
         'accuracy': {'horizontal': prop.get("horizontalAccuracy")},
         'positionProperties': {'batteryLevel': 95}
     }

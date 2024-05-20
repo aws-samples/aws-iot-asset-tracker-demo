@@ -306,12 +306,6 @@ def lambda_handler(event, context):
                     print(f"Error writing to DynamoDB payloads table: {e}")
 
             else:
-                batt = decoded_bytes[1]
-                temp = to_signed_byte(decoded_bytes[2])
-                hum = int(decoded_bytes[3])
-                motion = bool((decoded_bytes[4] & 0x80))
-                max_accel = float(decoded_bytes[4] & 0x7F) / 10
-
                 if frag_num == 0x7:
                     at_uplink_type = "GNSS_END"
                 else:
