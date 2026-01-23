@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
- AWS CloudFormation sample template for the Sidewalk Asset Tracker decode and defrag functions and DDB Tables
+ AWS CloudFormation sample template for the Sidewalk Asset Tracker decode function and DDB Tables
 Transform: "AWS::Serverless-2016-10-31"
 Resources:
   UplinkPayloadsTable:
@@ -21,24 +21,12 @@ Resources:
           PointInTimeRecoveryEnabled: true
       SSESpecification:
           SSEEnabled: true
-      StreamSpecification: 
-          StreamViewType: NEW_IMAGE
+      # Stream disabled - no longer needed after removing defragmentation Lambda
+      # StreamSpecification: 
+      #     StreamViewType: NEW_IMAGE
       TableClass: STANDARD
       TableName: at-payloads
 
-  FragEventSourceDDBTableStream:
-    # DependsOn: UplinkDefragLambdaFunction
-    Type: AWS::Lambda::EventSourceMapping
-    Properties:
-      BatchSize: 1
-      Enabled: True
-      FilterCriteria:
-        Filters:
-          - Pattern: '{ "dynamodb": { "NewImage": { "type": { "S": ["WIFI_END","GNSS_END"] } } } }'
-      EventSourceArn: !GetAtt UplinkPayloadsTable.StreamArn
-      FunctionName: !GetAtt UplinkDefragLambdaFunction.Arn
-      StartingPosition: LATEST
-  
   SidewalkEventsTable:
     Type: AWS::DynamoDB::Table
     Properties: 
@@ -92,24 +80,23 @@ Resources:
       Principal: iot.amazonaws.com
       SourceAccount: !Ref "AWS::AccountId"
 
-  UplinkDefragLambdaFunction:
-    DependsOn: UplinkDefragRole
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: 'UplinkDefrag'
-      Handler: at-defrag.lambda_handler
-      Runtime: python3.11
-      CodeUri: ./lambda/at_defrag/at-defrag.py
-      Role: !GetAtt UplinkDefragRole.Arn
-      Environment: 
-        Variables:
-          UPLINK_PAYLOADS_TABLE: at-payloads
-
   UplinkIoTRule:
     DependsOn: UplinkDecodeLambdaFunction
     Type: AWS::IoT::TopicRule
     Properties:
       RuleName: 'at_uplink_decode'
+      TopicRulePayload:
+        RuleDisabled: 'false'
+        Sql: SELECT * as at_uplink
+        Actions:
+        - Lambda:
+            FunctionArn: !GetAtt UplinkDecodeLambdaFunction.Arn
+
+  LocationIoTRule:
+    DependsOn: UplinkDecodeLambdaFunction
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: 'at_location_decode'
       TopicRulePayload:
         RuleDisabled: 'false'
         Sql: SELECT * as at_uplink
@@ -196,75 +183,18 @@ Resources:
                 - logs:PutLogEvents
                 Resource:
                 - !Join ["", ["arn:aws:logs:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":*"]]
-              - Sid: UplinkDecodeGetPosition
-                Effect: Allow
-                Action:
-                - iotwireless:GetPositionEstimate
-                Resource:
-                - "*"
               - Sid: UplinkDecodeIoTActions
                 Effect: Allow
                 Action:
                 - iot:Publish
                 Resource:
                 - !Join ["", ["arn:aws:iot:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":topic/iot/assettracker"]]
-  
-  UplinkDefragRole:
-    DependsOn: UplinkPayloadsTable
-    Type: 'AWS::IAM::Role'
-    Properties:
-      RoleName: "at_uplink_defrag_role"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-      Policies:
-        - PolicyName: uplink_defrag_policy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Sid: AllowUplinkPayloadTableStream
+              - Sid: UplinkDecodeGetResourcePosition
                 Effect: Allow
                 Action:
-                - dynamodb:DescribeStream
-                - dynamodb:GetRecords
-                - dynamodb:GetShardIterator
-                - dynamodb:ListStreams
+                - iotwireless:GetResourcePosition
                 Resource:
-                - !GetAtt UplinkPayloadsTable.StreamArn
-              - Sid: AllowUplinkPayloadTable
-                Effect: Allow
-                Action:
-                - dynamodb:Query
-                - dynamodb:UpdateItem
-                - dynamodb:GetItem
-                Resource:
-                - !GetAtt UplinkPayloadsTable.Arn
-              - Sid: UplinkDefragLogging
-                Effect: Allow
-                Action:
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-                Resource:
-                - !Join ["", ["arn:aws:logs:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":*"]]
-              - Sid: UplinkDefragGetPosition
-                Effect: Allow
-                Action:
-                - iotwireless:GetPositionEstimate
-                Resource:
-                - "*"
-              - Sid: UplinkDefragIoTActions
-                Effect: Allow
-                Action:
-                - iot:Publish
-                Resource:
-                - !Join ["", ["arn:aws:iot:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId" , ":topic/iot/assettracker"]]
+                - '*'
   
 Outputs:
   UplinkPayloadsTableARN:
@@ -275,5 +205,3 @@ Outputs:
     Value: !GetAtt DeviceConfigTable.Arn
   UplinkDecodeLambdaFunctionARN:
     Value: !GetAtt UplinkDecodeLambdaFunction.Arn
-  UplinkDefragLambdaFunctionARN:
-    Value: !GetAtt UplinkDefragLambdaFunction.Arn
