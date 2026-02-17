@@ -1,3 +1,4 @@
 [submodule "device/wm1110-asset-tracker"]
 	path = device/wm1110-asset-tracker
 	url = https://github.com/aws-samples/wm1110-asset-tracker
+	branch = v1-main
