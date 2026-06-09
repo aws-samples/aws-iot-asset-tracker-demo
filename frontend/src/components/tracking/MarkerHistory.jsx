@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: MIT-0
 
 import React, { useState, useEffect } from "react";
-import { API, graphqlOperation } from "@aws-amplify/api";
+import { generateClient } from "aws-amplify/api";
 import { getDeviceHistory as getDeviceHistoryQuery } from "../common/queries";
 import { Marker as MapMarker, Source, Layer } from "react-map-gl";
 import { featureCollection, point } from "@turf/helpers";
 import combine from "@turf/combine";
+
+const client = generateClient();
 
 export const MarkerHistory = ({ isShowingHistory, span, setError }) => {
   const [markers, setMarkers] = useState([]);
@@ -15,12 +17,10 @@ export const MarkerHistory = ({ isShowingHistory, span, setError }) => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const history = await API.graphql(
-          graphqlOperation(getDeviceHistoryQuery, {
-            deviceId: "assettracker",
-            span,
-          })
-        );
+        const history = await client.graphql({
+          query: getDeviceHistoryQuery,
+          variables: { deviceId: "assettracker", span },
+        });
 
         const { getDeviceHistory: points } = history.data;
         setMarkers(points);
@@ -31,7 +31,6 @@ export const MarkerHistory = ({ isShowingHistory, span, setError }) => {
           );
           return;
         }
-        // Combine all points into a single line
         const lineFeature = combine(
           featureCollection(points.map((p) => point([p.lng, p.lat], p))),
           { mutate: true }

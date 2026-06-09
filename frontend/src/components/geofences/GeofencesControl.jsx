@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 
 import React, { useEffect, useState, useCallback } from "react";
-import { Geo } from "aws-amplify";
+import { Geo } from "@aws-amplify/geo";
 import { Button } from "@aws-amplify/ui-react";
 import GeofencesPanel from "./GeofencesPanel";
 import DrawControl from "./DrawControl";
@@ -11,7 +11,6 @@ import DrawnGeofences from "./DrawnGeofences";
 
 // Order polygon vertices in counter-clockwise order since that is the order PutGeofence accepts
 const convertCounterClockwise = (vertices) => {
-  // Determine if polygon is wound counter-clockwise using shoelace formula
   let area = 0;
   for (let i = 0; i < vertices.length; i++) {
     let j = (i + 1) % vertices.length;
@@ -22,7 +21,6 @@ const convertCounterClockwise = (vertices) => {
   if (area / 2 > 0) {
     return vertices;
   } else {
-    // Reverse vertices to counter-clockwise order
     return vertices.reverse();
   }
 };
@@ -43,7 +41,6 @@ export const GeofencesControl = ({}) => {
     const fetchedGeofences = await Geo.listGeofences();
     setIsLoading(false);
     setTotalGeofences(fetchedGeofences.entries.length);
-    // Limit to only display 10 geofences
     setGeofences(fetchedGeofences.entries.reverse().slice(0, 10));
   };
 
@@ -57,16 +54,14 @@ export const GeofencesControl = ({}) => {
     if (isOpenedPanel) {
       fetchGeofences();
     } else {
-      // Exit out of geofence drawing mode when panel is closed
       onDrawingChange(false);
       setIsGeofenceCompletable(false);
     }
   }, [isOpenedPanel]);
 
-  // Delete geofences and refreshing geofences being displayed
-  const handleDeleteGeofences = async (geofences) => {
-    if (geofences.length > 0) {
-      await Geo.deleteGeofences(geofences);
+  const handleDeleteGeofences = async (geofenceIds) => {
+    if (geofenceIds.length > 0) {
+      await Geo.deleteGeofences(geofenceIds);
       fetchGeofences();
     }
   };
@@ -74,7 +69,6 @@ export const GeofencesControl = ({}) => {
   const onDrawingChange = (status) =>
     status ? setIsDrawing(true) : setIsDrawing(false);
 
-  //Making call to PutGeofence after user complete drawing a polygon using mapbox-gl-draw
   const handleCreate = useCallback(async (e) => {
     console.log(e);
     if (e.features) {
@@ -104,16 +98,13 @@ export const GeofencesControl = ({}) => {
     }
   }, []);
 
-  // Exit out of drawing geofence mode when a geofence has been created or when escape key has been pressed.
   const handleModeChange = useCallback((e) => {
-    // simple_select mode is entered upon completing a drawn polygon or when the escape key is pressed.
     if (e.mode === "simple_select") {
       onDrawingChange(false);
       setIsGeofenceCompletable(false);
     }
   }, []);
 
-  // Helps track if the user has began drawing a geofence by plotting a single point
   const handleGeofenceCompletable = (completable) => {
     setIsGeofenceCompletable(completable);
   };
