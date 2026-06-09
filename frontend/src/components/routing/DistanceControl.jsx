@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Geo, Hub, Auth, Cache } from "aws-amplify";
+import { Hub } from "aws-amplify/utils";
+import { fetchAuthSession } from "aws-amplify/auth";
 import {
   CalculateRouteCommand,
   LocationClient,
@@ -9,37 +10,23 @@ import awsmobile from "../../aws-exports";
 import { DistanceButton } from "./DistanceButton";
 import { UserPositionLabel } from "./UserPositionLabel";
 
-const checkCredentials = async (cachedCredentials) => {
-  if (!cachedCredentials || cachedCredentials.expiration === undefined) {
-    const credentials = await Auth.currentCredentials();
-    Cache.setItem("temporary_credentials", credentials);
-    return credentials;
-  }
-  // If credentials are expired or about to expire, refresh them
-  if (
-    (new Date(cachedCredentials.expiration).getTime() - Date.now()) / 1000 <
-    60
-  ) {
-    const credentials = await Auth.currentCredentials();
-    Cache.setItem("temporary_credentials", credentials);
-    return credentials;
-  }
+let cachedCredentials = null;
 
+const getCredentials = async () => {
+  const session = await fetchAuthSession();
+  cachedCredentials = session.credentials;
   return cachedCredentials;
 };
 
 const refreshOrInitLocationClient = async (client) => {
-  const cachedCredentials = Cache.getItem("temporary_credentials");
-  const credentials = await checkCredentials(cachedCredentials);
-  if (!client || credentials.accessKeyId !== cachedCredentials.accessKeyId) {
+  const credentials = await getCredentials();
+  if (!client) {
     client = new LocationClient({
       credentials,
-      region: Geo.getDefaultMap().region,
+      region: awsmobile.aws_project_region,
     });
-
     return client;
   }
-
   return client;
 };
 
@@ -82,7 +69,6 @@ export const DistanceControl = () => {
   useEffect(() => {
     hubRef.current = Hub.listen("assetTrackerUpdates", onAssetTrackerUpdate);
 
-    // Clean up the hub listener when the component unmounts
     return () => hubRef.current();
   }, [userLocation]);
 

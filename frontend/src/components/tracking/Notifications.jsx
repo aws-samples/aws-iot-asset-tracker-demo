@@ -4,7 +4,7 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import { Card, Text } from "@aws-amplify/ui-react";
 import toast, { Toaster } from "react-hot-toast";
-import { Hub } from "@aws-amplify/core";
+import { Hub } from "aws-amplify/utils";
 
 export const Notifications = () => {
   const hubRef = useRef();
@@ -34,7 +34,6 @@ export const Notifications = () => {
   useEffect(() => {
     hubRef.current = Hub.listen("assetTrackerUpdates", onAssetTrackerUpdate);
 
-    // Clean up the hub listener when the component unmounts
     return () => hubRef.current();
   }, []);
 

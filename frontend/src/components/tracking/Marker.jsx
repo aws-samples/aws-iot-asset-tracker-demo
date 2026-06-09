@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Marker as MapMarker, Source, Layer } from "react-map-gl";
 import { createGeoJSONCircle } from "./Marker.helpers";
-import { Hub } from "@aws-amplify/core";
+import { Hub } from "aws-amplify/utils";
 import {Popup} from "react-map-gl";
 
 export const Marker = ({ isShowingHistory, isTrackingChecked }) => {
