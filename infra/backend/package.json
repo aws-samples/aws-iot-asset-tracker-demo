@@ -44,7 +44,7 @@
     "aws-cdk-lib": "^2.258.1",
     "cdk-nag": "^2.27.67",
     "constructs": "^10.2.69",
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.1",
     "phin": "^3.7.1",
     "source-map-support": "^0.5.21"
   }
