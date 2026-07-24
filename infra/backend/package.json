@@ -41,7 +41,7 @@
     "@aws-sdk/client-secrets-manager": "^3.369.0",
     "@aws-sdk/credential-provider-node": "^3.369.0",
     "@aws-sdk/signature-v4": "^3.369.0",
-    "aws-cdk-lib": "^2.258.1",
+    "aws-cdk-lib": "^2.260.0",
     "cdk-nag": "^2.27.67",
     "constructs": "^10.2.69",
     "esbuild": "^0.28.0",
